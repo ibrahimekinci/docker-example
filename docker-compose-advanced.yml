@@ -1,0 +1,98 @@
+version: "3.7"
+    
+services:
+  app_1:
+    container_name: "docker-example-advanced-app-1"
+    build:
+      context: ./src
+      dockerfile: Example.Docker.DotnetCoreV3/Dockerfile
+    restart: always
+  api_1:
+    container_name: "docker-example-advanced-api-1"
+    build:
+      context: ./src
+      dockerfile: Example.Docker.DotnetCoreV5/Dockerfile
+    restart: always
+  postgres:
+    container_name: "docker-example-advanced-postgres"
+    image: postgres:latest
+    restart: always
+    ports:
+        - "5432:5432"
+    environment:
+        HOSTNAME: docker-example-advanced-postgres
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: db_docker_example
+    volumes:
+        - ./.docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+        - postgres_data_volume:/var/lib/postgresql/data
+  pgAdmin:
+    container_name: "docker-example-advanced-pgAdmin"
+    restart: always
+    image: dpage/pgadmin4:latest
+    ports:
+        - "5432:80"
+    environment:
+        PGADMIN_DEFAULT_EMAIL: pgadmin4
+        PGADMIN_DEFAULT_PASSWORD: pgadmin4
+    volumes:
+        - pgadmin_data_volume:/var/lib/pgadmin/data
+  mongodb:
+    container_name: "docker-example-advanced-mongodb"
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb
+      MONGO_INITDB_ROOT_PASSWORD: mongodb
+      MONGO_INITDB_DATABASE: db_docker_example
+    ports:
+      - 27017:27017
+    volumes:
+      - ./.docker/mongo/init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongodb_data_volume:/var/lib/mongodb/data
+  mongoclient:
+    container_name: "docker-example-advanced-mongoclient"
+    image: mongoclient/mongoclient:latest
+    hostname: mongoclient
+    depends_on:
+      - mongodb
+    ports:
+      - 3300:3000
+  redis:
+    container_name: "docker-example-advanced-redis"
+    hostname: docker-example-advanced-redis
+    image: redis
+    # restart: on-failure
+    restart: always
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"  
+    volumes:
+      - redis_data_volume:/var/lib/redis/data
+  redis-commander:
+    container_name: docker-example-advanced-commander
+    hostname: docker-example-advanced-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+    - REDIS_HOSTS=local:redis:6379
+    ports:
+    - "8081:8081"
+  proxy:
+    container_name: "docker-example-advanced-nginx"
+    build:
+       context: ./.docker/nginx-advanced
+       dockerfile: Dockerfile
+    restart: always
+    ports:
+     - "6003:83"
+     - "6005:85"
+    links:
+      - app_1
+      - api_1
+volumes:
+    pgadmin_data_volume:
+    postgres_data_volume:
+    mongodb_data_volume:
+    redis_data_volume:

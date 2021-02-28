@@ -1,0 +1,11 @@
+version: "3.7"
+    
+services:
+  app:
+    container_name: "docker-example-basic"
+    build:
+      context: ./src
+      dockerfile: Example.Docker.DotnetCoreV5/Dockerfile
+    restart: always
+    ports:
+     - "8089:5005"

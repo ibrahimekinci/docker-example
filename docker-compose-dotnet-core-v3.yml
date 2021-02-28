@@ -1,0 +1,19 @@
+version: "3.7"
+    
+services:
+  app:
+    container_name: "docker-example-single-app-DotnetCoreV3"
+    build:
+      context: ./src
+      dockerfile: Example.Docker.DotnetCoreV3/Dockerfile
+    restart: always
+  proxy:
+    container_name: "docker-example-single-app-DotnetCoreV3-nginx"
+    build:
+       context: ./.docker/nginx-dotnet-core-v3
+       dockerfile: Dockerfile
+    restart: always
+    ports:
+     - "8003:80"
+    links:
+      - app
